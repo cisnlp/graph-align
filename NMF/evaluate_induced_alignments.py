@@ -55,15 +55,17 @@ def main(args):
             print(f'----{i}----\nPrecision: {results_all[i]["prec"]}\nRecall: {results_all[i]["rec"]}\nF1: {results_all[i]["f1"]}\nAER: {results_all[i]["aer"]}\nHits: {results_all[i]["total_hit_count"]}\n\n')
 
 if __name__ == "__main__":
+    current_dir = os.path.dirname(os.path.realpath(__file__))
+    mother_dir = os.path.abspath(os.path.join(current_dir, '..'))
     parser = argparse.ArgumentParser()
     
-    parser.add_argument('--save_path', default="/mounts/Users/cisintern/lksenel/Projects/pbc/graph-align/results/", type=str)
-    parser.add_argument('--gold_file', default="/mounts/Users/cisintern/lksenel/Projects/pbc/pbc_utils/data/eng_fra_pbc/eng-fra.gold", type=str)    
-    parser.add_argument('--predicted_alignments_file', default="/mounts/Users/cisintern/lksenel/Projects/pbc/graph-align/predicted_alignments/predicted_alignments_from_eng-x-bible-mixed_to_fra-x-bible-louissegond_with_max_83_editions_for_250_verses_NMF.txt", type=str)    
-    parser.add_argument('--intersection_alignments_file', default="/mounts/Users/cisintern/lksenel/Projects/pbc/graph-align/predicted_alignments/intersection_alignments_from_eng-x-bible-mixed_to_fra-x-bible-louissegond_for_250_verses.txt", type=str)    
-    parser.add_argument('--gdfa_alignments_file', default="/mounts/Users/cisintern/lksenel/Projects/pbc/graph-align/predicted_alignments/gdfa_alignments_from_eng-x-bible-mixed_to_fra-x-bible-louissegond_for_250_verses.txt", type=str)    
-    parser.add_argument('--source_edition', default="eng-x-bible-mixed", type=str) 
-    parser.add_argument('--target_edition', default="fra-x-bible-louissegond", type=str) 
+    parser.add_argument('--save_path', default=os.path.join(current_dir, "results"), type=str)
+    parser.add_argument('--gold_file', default=os.path.join(mother_dir, "data/gold-standards/helfi/helfi-fin-heb-gold-alignments_test.txt"), type=str)    
+    parser.add_argument('--predicted_alignments_file', default=os.path.join(current_dir, "predicted_alignments/predicted_alignments_from_fin-helfi_to_heb-helfi_with_max_84_editions_for_2230_verses_NMF.txt"), type=str)    
+    parser.add_argument('--intersection_alignments_file', default=os.path.join(current_dir, "predicted_alignments/intersection_alignments_from_fin-helfi_to_heb-helfi_for_2230_verses.txt"), type=str)    
+    parser.add_argument('--gdfa_alignments_file', default=os.path.join(current_dir, "predicted_alignments/gdfa_alignments_from_fin-helfi_to_heb-helfi_for_2230_verses.txt"), type=str)    
+    parser.add_argument('--source_edition', default="fin-x-bible-helfi", type=str) 
+    parser.add_argument('--target_edition', default="heb-x-bible-helfi", type=str) 
 
     args = parser.parse_args()
     main(args)

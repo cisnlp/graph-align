@@ -233,6 +233,7 @@ def init_globals(counter):
 def main(args):
     random.seed(args.seed)
 
+    # Get verse_ids
     pros, surs = load_gold(args.gold_file)
     all_verses =list(pros.keys())
     all_verses = all_verses
@@ -258,11 +259,11 @@ def main(args):
     with Pool(processes=args.core_count, initializer=init_globals, initargs=(cnt,)) as p:
         all_alignments = p.starmap(get_induced_alignments, starmap_args)
 
-    out_NMF_f_name = f"predicted_alignments_from_{args.source_edition}_to_{args.target_edition}_with_max_{len(all_editions)}_editions_for_{len(all_verses)}_verses_NMF.txt"
+    out_NMF_f_name = f"predicted_alignments_from_{args.source_edition.replace('-x-bible','')}_to_{args.target_edition.replace('-x-bible','')}_with_max_{len(all_editions)}_editions_for_{len(all_verses)}_verses_NMF.txt"
     out_NMF_file = open(os.path.join(args.save_path, out_NMF_f_name), 'w')
-    out_inter_f_name = f"intersection_alignments_from_{args.source_edition}_to_{args.target_edition}_for_{len(all_verses)}_verses.txt"
+    out_inter_f_name = f"intersection_alignments_from_{args.source_edition.replace('-x-bible','')}_to_{args.target_edition.replace('-x-bible','')}_for_{len(all_verses)}_verses.txt"
     out_inter_file = open(os.path.join(args.save_path, out_inter_f_name), 'w')
-    out_gdfa_f_name = f"gdfa_alignments_from_{args.source_edition}_to_{args.target_edition}_for_{len(all_verses)}_verses.txt"
+    out_gdfa_f_name = f"gdfa_alignments_from_{args.source_edition.replace('-x-bible','')}_to_{args.target_edition.replace('-x-bible','')}_for_{len(all_verses)}_verses.txt"
     out_gdfa_file = open(os.path.join(args.save_path, out_gdfa_f_name), 'w')
 
     for id, verse_id in enumerate(all_verses):
@@ -279,15 +280,18 @@ def main(args):
     out_gdfa_file.close()
 
 if __name__ == "__main__":
-    current_path = os.path.dirname(os.path.realpath(__file__))
+    current_dir = os.path.dirname(__file__)
+    mother_dir = os.path.abspath(os.path.join(current_dir, '..'))
+
     parser = argparse.ArgumentParser()
     
-    parser.add_argument('--save_path', default=os.path.join(current_path, "predicted_alignments"), type=str)
-    parser.add_argument('--gold_file', default=os.path.join(current_path, "data/gold-standards/blinker/eng-fra.gold"), type=str)
+    parser.add_argument('--save_path', default=os.path.join(current_dir, "predicted_alignments"), type=str)
+    parser.add_argument('--gold_file', default=os.path.join(mother_dir, "data/gold-standards/helfi/helfi-fin-heb-gold-alignments_test.txt"), type=str)
+    # parser.add_argument('--verse_alignments_path', default=os.path.join(mother_dir, 'data/initial_verse_alignments'), type=str)
     parser.add_argument('--verse_alignments_path', default="/mounts/data/proj/ayyoob/align_induction/verse_alignments/", type=str)
-    parser.add_argument('--source_edition', default="eng-x-bible-mixed", type=str)
-    parser.add_argument('--target_edition', default="fra-x-bible-louissegond", type=str)
-    parser.add_argument('--editions_file', default=os.path.join(current_path, "data/edition_lists/blinker_edition_list.txt" ), type=str)
+    parser.add_argument('--source_edition', default="fin-x-bible-helfi", type=str)
+    parser.add_argument('--target_edition', default="heb-x-bible-helfi", type=str)
+    parser.add_argument('--editions_file', default=os.path.join(mother_dir, "data/edition_lists/helfi_edition_list.txt" ), type=str)
     parser.add_argument('--core_count', default=80, type=int)
     parser.add_argument('--seed', default=42, type=int)
 

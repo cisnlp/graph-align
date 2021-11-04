@@ -1,0 +1,35 @@
+----base_intersection----
+Precision: 0.817
+Recall: 0.268
+F1: 0.404
+AER: 0.596
+Hits: 13456
+
+----base_gdfa----
+Precision: 0.508
+Recall: 0.448
+F1: 0.476
+AER: 0.524
+Hits: 36185
+
+----NMF----
+Precision: 0.793
+Recall: 0.582
+F1: 0.671
+AER: 0.328
+Hits: 30126
+
+----NMF + intersection----
+Precision: 0.756
+Recall: 0.597
+F1: 0.667
+AER: 0.333
+Hits: 32389
+
+----NMF + gdfa----
+Precision: 0.548
+Recall: 0.657
+F1: 0.598
+AER: 0.402
+Hits: 49172
+
