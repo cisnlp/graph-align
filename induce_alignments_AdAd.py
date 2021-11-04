@@ -257,15 +257,16 @@ def main(args):
 
 
 if __name__ == "__main__":
+	current_path = os.path.dirname(os.path.realpath(__file__))
 	parser = argparse.ArgumentParser()
 	
-	parser.add_argument('--save_path', default="/mounts/Users/cisintern/lksenel/Projects/pbc/graph-align/predicted_alignments", type=str)
-	parser.add_argument('--gold_file', default="/mounts/Users/cisintern/lksenel/Projects/pbc/pbc_utils/data/eng_fra_pbc/eng-fra.gold", type=str)
+	parser.add_argument('--save_path', default=os.path.join(current_path, "predicted_alignments"), type=str)
+	parser.add_argument('--gold_file', default=os.path.join(current_path, "data/gold-standards/blinker/eng-fra.gold"), type=str)   
 	parser.add_argument('--verse_alignments_path', default="/mounts/data/proj/ayyoob/align_induction/verse_alignments/", type=str)
 	parser.add_argument('--lang_files_path', default="/nfs/datc/pbc/", type=str)
 	parser.add_argument('--source_lang', default="eng", type=str)
 	parser.add_argument('--target_lang', default="fra", type=str)
-	parser.add_argument('--editions_file', default="/mounts/Users/cisintern/lksenel/Projects/pbc/pbc_utils/data/eng_fra_pbc/lang_list.txt", type=str)
+	parser.add_argument('--editions_file',  default=os.path.join(current_path, "data/edition_lists/blinker_edition_list.txt" ), type=str)
 	parser.add_argument('--aligner', default="inter", type=str)
 
 	args = parser.parse_args()
