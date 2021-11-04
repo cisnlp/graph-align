@@ -75,10 +75,7 @@ def load_texts_and_alignments(editions_file, lang_files_path, verse_alignments_p
 	texts = {}
 	for langl in langs:
 		verses = {}
-		if langl == "eng":
-			lang_path = os.path.join("/mounts/work/mjalili/projects/graph_align_base/data/pbc/", editions[langl] + ".txt")
-		else:
-			lang_path = os.path.join(lang_files_path, editions[langl] + ".txt")
+		lang_path = os.path.join(lang_files_path, editions[langl] + ".txt")
 		with codecs.open(lang_path, "r", "utf-8") as fi:
 			for l in fi:
 				if l[0] == "#": continue
