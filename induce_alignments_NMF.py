@@ -55,7 +55,7 @@ def get_aligns(rf, cf, alignments):
             res.append( ( int(x[0]), int(x[1]) ) )
     else:
         return None
-    
+
     return res
 
 def add_aligns(aligns, aligns_dict, token_counts, re, ce, existing_items):
@@ -69,7 +69,7 @@ def add_aligns(aligns, aligns_dict, token_counts, re, ce, existing_items):
             token_counts[re] = align[0]
         if align[1] > token_counts[ce]:
             token_counts[ce] = align[1]
-        
+
         existing_items[re][ce].append(f"{align[0]},{align[1]}")
 
 def add_negative_samples(aligns_dict, existing_items, token_counts, verse_id):
@@ -89,7 +89,7 @@ def add_negative_samples(aligns_dict, existing_items, token_counts, verse_id):
                 aligns_dict['userID'].append(re + str(i))
                 aligns_dict['itemID'].append(ce + str(jp))
                 aligns_dict['rating'].append(1)
-                
+
                 ip %= (token_counts[re] + 1) 
                 aligns_dict['userID'].append(re + str(ip))
                 aligns_dict['itemID'].append(ce + str(j))
@@ -112,11 +112,11 @@ def get_alignments_df(row_editions, col_editions, verse_alignments,
                 
             if not aligns is None:
                 add_aligns(aligns, aligns_dict, token_counts, re, ce, existing_items)
-        
+
     add_negative_samples(aligns_dict, existing_items, token_counts, verse_id)
 
     return pd.DataFrame(aligns_dict), token_counts[source_edition], token_counts[target_edition]
-    
+
 def iter_max(sim_matrix: np.ndarray, max_count: int=2, alpha_ratio = 0.7) -> np.ndarray:
     m, n = sim_matrix.shape
     forward = np.eye(n)[sim_matrix.argmax(axis=1)]  # m x n
@@ -156,14 +156,14 @@ def get_itermax_predictions(raw_s_predictions, max_count=2, alpha_ratio=0.9):
     for i in raw_s_predictions:
         for j, s in raw_s_predictions[i]:
             matrix[i,j] = s
-    
+
     itermax_res = iter_max(matrix, max_count, alpha_ratio)
     res = []
     for i in range(rows):
         for j in range(cols):
             if itermax_res[i,j] != 0:
                 res.append((i,j))
-    
+
     return res
 
 def predict_alignments(algo, source_edition, target_edition):
@@ -197,13 +197,13 @@ def train_model(df,  s_tok_count, t_tok_count, row_editions, col_editions):
     algo.row_editions = row_editions
     algo.col_editions = col_editions
     algo.df = df
-    
+
     return algo
 
 def get_induced_alignments(source_edition, target_edition, verse_alignments_path, verse_id, all_editions):
 
     verse_alignments = get_verse_alignments(verse_alignments_path, verse_id, editions=all_editions)
-    
+
     # this is only for saving the gdfa alignments from source to target for the evauation
     verse_alignments_gdfa = get_verse_alignments(verse_alignments_path, verse_id, editions=[source_edition, target_edition], gdfa=True)
 
@@ -213,17 +213,17 @@ def get_induced_alignments(source_edition, target_edition, verse_alignments_path
     df, s_tok_count, t_tok_count = get_alignments_df(row_editions, col_editions, verse_alignments, source_edition, target_edition, verse_id)
 
     algo = train_model(df, s_tok_count, t_tok_count, row_editions, col_editions)
-    
+
     predicted_alignments = predict_alignments(algo, source_edition, target_edition)
     base_inter_alignments = verse_alignments[source_edition][target_edition]
     base_gdfa_alignments = verse_alignments_gdfa[source_edition][target_edition]
-    
+
     with cnt.get_lock():
         cnt.value += 1
         if cnt.value % 20 == 0:
             LOG.info(f"Done inferring alignments for {cnt.value} verses")
 
-    return predicted_alignments, base_inter_alignments, base_gdfa_alignments,  len(algo.col_editions)+1
+    return predicted_alignments, base_inter_alignments, base_gdfa_alignments,  len(algo.col_editions) + 1
 
 
 def init_globals(counter):
@@ -255,7 +255,7 @@ def main(args):
 
     # get predicted alignments using parallel processing
     cnt = Value('i', 0)
-    with Pool(processes=args.core_count, initializer=init_globals, initargs=(cnt,)) as p:  
+    with Pool(processes=args.core_count, initializer=init_globals, initargs=(cnt,)) as p:
         all_alignments = p.starmap(get_induced_alignments, starmap_args)
 
     out_NMF_f_name = f"predicted_alignments_from_{args.source_edition}_to_{args.target_edition}_with_max_{len(all_editions)}_editions_for_{len(all_verses)}_verses_NMF.txt"
@@ -283,14 +283,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     
     parser.add_argument('--save_path', default=os.path.join(current_path, "predicted_alignments"), type=str)
-    parser.add_argument('--gold_file', default=os.path.join(current_path, "data/gold-standards/blinker/eng-fra.gold"), type=str)    
+    parser.add_argument('--gold_file', default=os.path.join(current_path, "data/gold-standards/blinker/eng-fra.gold"), type=str)
     parser.add_argument('--verse_alignments_path', default="/mounts/data/proj/ayyoob/align_induction/verse_alignments/", type=str)
-    parser.add_argument('--source_edition', default="eng-x-bible-mixed", type=str) 
-    parser.add_argument('--target_edition', default="fra-x-bible-louissegond", type=str) 
+    parser.add_argument('--source_edition', default="eng-x-bible-mixed", type=str)
+    parser.add_argument('--target_edition', default="fra-x-bible-louissegond", type=str)
     parser.add_argument('--editions_file', default=os.path.join(current_path, "data/edition_lists/blinker_edition_list.txt" ), type=str)
     parser.add_argument('--core_count', default=80, type=int)
     parser.add_argument('--seed', default=42, type=int)
 
     args = parser.parse_args()
     main(args)
-    
+

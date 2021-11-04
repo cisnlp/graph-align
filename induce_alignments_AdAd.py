@@ -6,7 +6,7 @@ from tqdm import tqdm
 from collections import defaultdict
 import numpy as np
 
-from utils import LOG, load_editions
+from utils import LOG, load_editions, load_gold
 
 class MyWG:
 	def __init__(self, nodes=[]):
@@ -65,14 +65,6 @@ class MyWG:
 		return scores
 
 
-def load_gold(gold_path="golds/eng-fra-new.gold"):
-	golds = {}
-	with open(gold_path, "r") as fi:
-		for l in fi:
-			l = l.split("\t")
-			golds[l[0]] = list(set(l[1].split()))
-	return golds
-
 def load_texts_and_alignments(editions_file, lang_files_path, verse_alignments_path, aligner="inter", golds=None):
 	# Get languages and editions
 	editions, langs = load_editions(editions_file)
@@ -83,7 +75,10 @@ def load_texts_and_alignments(editions_file, lang_files_path, verse_alignments_p
 	texts = {}
 	for langl in langs:
 		verses = {}
-		lang_path = lang_files_path + "/" + l[1] + ".txt"
+		if langl == "eng":
+			lang_path = os.path.join("/mounts/work/mjalili/projects/graph_align_base/data/pbc/", editions[langl] + ".txt")
+		else:
+			lang_path = os.path.join(lang_files_path, editions[langl] + ".txt")
 		with codecs.open(lang_path, "r", "utf-8") as fi:
 			for l in fi:
 				if l[0] == "#": continue
@@ -102,7 +97,7 @@ def load_texts_and_alignments(editions_file, lang_files_path, verse_alignments_p
 		v_path = F"{verse_alignments_path}/{verse}_{aligner}.txt"
 		if not os.path.exists(v_path):
 			LOG.info(v_path)
-			LOG.info(f"================================== dos not exist ==================================")
+			LOG.info(f"================================== does not exist ==================================")
 			return None
 		with open(v_path, "r") as f_al:
 			for vl in f_al:
@@ -120,7 +115,7 @@ def load_texts_and_alignments(editions_file, lang_files_path, verse_alignments_p
 				else:
 					init_aligns[(l1, l2)][verse] = [[int(alp.split("-")[1]), int(alp.split("-")[0]), 1.0] for alp in vl[2].strip().split()]
 
-	return langs, texts, lang_pairs, init_aligns
+	return lang_code_map, langs, texts, lang_pairs, init_aligns
 
 def get_alignment_matrix(sim_matrix):
 	m, n = sim_matrix.shape
@@ -232,7 +227,6 @@ def add_edges_to_align_argmax(texts, waligns, out_path="", target_pair=("eng", "
 	return all_cnt
 
 def main(args):
-	target_pair = (args.source_lang, args.target_lang)
 	if args.gold_file != "":
 		pros, surs = load_gold(args.gold_file)
 		all_verses = list(pros.keys())
@@ -240,10 +234,11 @@ def main(args):
 		all_verses = None
 
 	# Get languages and initial alignments
-	langs, texts, lang_pairs, init_aligns = load_texts_and_alignments(args.editions_file, args.lang_files_path, args.verse_alignments_path, args.aligner, golds=all_verses)
+	lang_code_map, langs, texts, lang_pairs, init_aligns = load_texts_and_alignments(args.editions_file, args.lang_files_path, args.verse_alignments_path, args.aligner, golds=all_verses)
+	target_pair = (lang_code_map[args.source_edition], lang_code_map[args.target_edition])
 
 	# print some info
-	LOG.info(f"Inferring alignments from {args.source_lang} to {args.target_lang}")
+	LOG.info(f"Inferring alignments from {args.source_edition} to {args.target_edition}")
 	LOG.info(f"Number of verses whose alignments will be inferred: {len(all_verses)}")
 	LOG.info(f"Number of editions to use for the graph algorithms: {len(langs)}")
 
@@ -259,13 +254,13 @@ def main(args):
 if __name__ == "__main__":
 	current_path = os.path.dirname(os.path.realpath(__file__))
 	parser = argparse.ArgumentParser()
-	
+
 	parser.add_argument('--save_path', default=os.path.join(current_path, "predicted_alignments"), type=str)
-	parser.add_argument('--gold_file', default=os.path.join(current_path, "data/gold-standards/blinker/eng-fra.gold"), type=str)   
+	parser.add_argument('--gold_file', default=os.path.join(current_path, "data/gold-standards/blinker/eng-fra.gold"), type=str)
 	parser.add_argument('--verse_alignments_path', default="/mounts/data/proj/ayyoob/align_induction/verse_alignments/", type=str)
 	parser.add_argument('--lang_files_path', default="/nfs/datc/pbc/", type=str)
-	parser.add_argument('--source_lang', default="eng", type=str)
-	parser.add_argument('--target_lang', default="fra", type=str)
+	parser.add_argument('--source_edition', default="eng-x-bible-mixed", type=str)
+	parser.add_argument('--target_edition', default="fra-x-bible-louissegond", type=str)
 	parser.add_argument('--editions_file',  default=os.path.join(current_path, "data/edition_lists/blinker_edition_list.txt" ), type=str)
 	parser.add_argument('--aligner', default="inter", type=str)
 
